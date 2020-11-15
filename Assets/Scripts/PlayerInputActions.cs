@@ -95,6 +95,33 @@ public class @PlayerInputActions : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""MenuControls"",
+            ""id"": ""b338be1d-dcd3-4dcd-aafa-e9746f394707"",
+            ""actions"": [
+                {
+                    ""name"": ""New action"",
+                    ""type"": ""Button"",
+                    ""id"": ""385d3747-2aaf-42d0-92ff-3d149f6c2483"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""fb5375eb-2c9a-44c7-9828-f06dccc19f23"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""New action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -114,6 +141,9 @@ public class @PlayerInputActions : IInputActionCollection, IDisposable
         // ShipControls
         m_ShipControls = asset.FindActionMap("ShipControls", throwIfNotFound: true);
         m_ShipControls_Move = m_ShipControls.FindAction("Move", throwIfNotFound: true);
+        // MenuControls
+        m_MenuControls = asset.FindActionMap("MenuControls", throwIfNotFound: true);
+        m_MenuControls_Newaction = m_MenuControls.FindAction("New action", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -192,6 +222,39 @@ public class @PlayerInputActions : IInputActionCollection, IDisposable
         }
     }
     public ShipControlsActions @ShipControls => new ShipControlsActions(this);
+
+    // MenuControls
+    private readonly InputActionMap m_MenuControls;
+    private IMenuControlsActions m_MenuControlsActionsCallbackInterface;
+    private readonly InputAction m_MenuControls_Newaction;
+    public struct MenuControlsActions
+    {
+        private @PlayerInputActions m_Wrapper;
+        public MenuControlsActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Newaction => m_Wrapper.m_MenuControls_Newaction;
+        public InputActionMap Get() { return m_Wrapper.m_MenuControls; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(MenuControlsActions set) { return set.Get(); }
+        public void SetCallbacks(IMenuControlsActions instance)
+        {
+            if (m_Wrapper.m_MenuControlsActionsCallbackInterface != null)
+            {
+                @Newaction.started -= m_Wrapper.m_MenuControlsActionsCallbackInterface.OnNewaction;
+                @Newaction.performed -= m_Wrapper.m_MenuControlsActionsCallbackInterface.OnNewaction;
+                @Newaction.canceled -= m_Wrapper.m_MenuControlsActionsCallbackInterface.OnNewaction;
+            }
+            m_Wrapper.m_MenuControlsActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Newaction.started += instance.OnNewaction;
+                @Newaction.performed += instance.OnNewaction;
+                @Newaction.canceled += instance.OnNewaction;
+            }
+        }
+    }
+    public MenuControlsActions @MenuControls => new MenuControlsActions(this);
     private int m_GamepadSchemeIndex = -1;
     public InputControlScheme GamepadScheme
     {
@@ -204,5 +267,9 @@ public class @PlayerInputActions : IInputActionCollection, IDisposable
     public interface IShipControlsActions
     {
         void OnMove(InputAction.CallbackContext context);
+    }
+    public interface IMenuControlsActions
+    {
+        void OnNewaction(InputAction.CallbackContext context);
     }
 }
